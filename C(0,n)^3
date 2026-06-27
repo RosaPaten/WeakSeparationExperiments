@@ -1,7 +1,7 @@
 #specify a point as a tuple in Z/n\times Z
 
 def integer_mapping(p,n):
-  return n*p[0]+p[1]
+  return p[0]+n*p[1]
   
 #where I, J are integers
 def is_sep(I,J):
@@ -13,6 +13,8 @@ def is_sep(I,J):
   for j in J:
     if j not in I:
       J_new.append(j)
+  if len(I_new) == 0 or len(J_new) == 0:
+    return True
 
   p = I_new[0]
   q = J_new[0]
@@ -25,17 +27,17 @@ def is_sep(I,J):
         m = abs(i - j)
 
   if p<q:
-    for i in I:
+    for i in I_new:
       if i>p:
         return False
-    for j in J:
+    for j in J_new:
       if j<q:
         return False
   elif p>q:
-    for i in I:
+    for i in I_new:
       if i<p:
         return False
-    for j in J:
+    for j in J_new:
       if j>q:
         return False
   return True
@@ -44,12 +46,12 @@ def translate(I,n):
   I_new = []
   for i in I:
     I_new.append(i+n)
+  return I_new
 
 
 def is_trans_sep_int(I,J,n,num):
-  J_new = []
   for r in range(-num,num+1):
-    J_new = translate(I,r*n)
+    J_new = translate(J,r*n)
     if is_sep(I,J_new) == False:
       return False
   return True
@@ -64,4 +66,39 @@ def is_trans_sep(I,J,n,num):
   return is_trans_sep_int(I_new,J_new,n,num)
     
 
+def gen_all(n):
+  all = []
+  for i in range(n):
+    p = [[i,0],[i,1],[i,2]]
+    all.append(p)
+  for j in range(n):
+    for i in range(j):
+      p = [[i,0],[i,1],[j,0]]
+      all.append(p)
+      p = [[i,0],[i,1],[j,1]]
+      all.append(p)
+      p = [[i,0],[i,1],[j,-1]]
+      all.append(p)
+      p = [[j,0],[j,1],[i,0]]
+      all.append(p)
+      p = [[j,0],[j,1],[i,1]]
+      all.append(p)
+      p = [[j,0],[j,1],[j,-1]]
+      all.append(p)
+  for k in range(n):
+    for j in range(k):
+      for i in range(j):
+        p = [[i,0],[j,0],[k,0]]
+        all.append(p)
+        p = [[i,1],[j,1],[k,0]]
+        all.append(p)
+        p = [[i,1],[j,0],[k,0]]
+        all.append(p)
+  return all
+
+all = gen_all(3)
+for i in all:
+  for j in all:
+    if is_trans_sep(i,j,3,10) == True and i!=j:
+      print(i,j)
   
