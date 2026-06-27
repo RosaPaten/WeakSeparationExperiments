@@ -1,0 +1,50 @@
+#specify a point as a tuple in Z/n\times Z
+
+def dist(p,q):
+  pass
+
+#checks whether p is left of p_0
+def left_of(p, p_0):
+  if p[0]<p_0[0]:
+    return True
+  if p[1]<=p_0[1]:
+    return True
+  return False
+  
+  
+#specify a set of points by a list I, J
+
+def is_sep(I, J):
+  I_new = []
+  J_new = []
+  for i in I:
+    if i not in J:
+      I_new.append(i)
+  for j in J:
+    if j not in I:
+      J_new.append(j)
+
+  #find two points p,q which are closest together
+  p = I_new[0]
+  q = J_new[0]
+  m = dis(p,q)
+  for i in I_new:
+    for j in J_new:
+      if dis(i,j)<m:
+        p = i
+        q = j
+        m = dis(i,j)
+  
+  #find the direction I is from p, J from q
+  
+
+  #check all of I is in direction from p, direction from q
+  pass
+
+
+def is_self_sep(I):
+  #check translates
+
+def is_trans_sep(I,J):
+  #check translates
+  
