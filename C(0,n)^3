@@ -40,6 +40,28 @@ def is_sep(I,J):
         return False
   return True
 
-def is_trans_sep(I,J):
-  #check translates
+def translate(I,n):
+  I_new = []
+  for i in I:
+    I_new.append(i+n)
+
+
+def is_trans_sep_int(I,J,n,num):
+  J_new = []
+  for r in range(-num,num+1):
+    J_new = translate(I,r*n)
+    if is_sep(I,J_new) == False:
+      return False
+  return True
+
+def is_trans_sep(I,J,n,num):
+  I_new = []
+  J_new = []
+  for i in I:
+    I_new.append(integer_mapping(i,n))
+  for j in J:
+    J_new.append(integer_mapping(j,n))
+  return is_trans_sep_int(I_new,J_new,n,num)
+    
+
   
