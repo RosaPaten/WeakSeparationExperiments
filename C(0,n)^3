@@ -1,9 +1,20 @@
-#specify a point as a tuple in Z/n\times Z
+###overall idea: map a point in Z/n\times Z to a point in Z. then check weak separability on Z.
 
+#specify a point as a list in Z/n\times Z
+import networkx as nx
+
+#maps a point in Z/n\times Z to a point in Z so that can compare position
 def integer_mapping(p,n):
   return p[0]+n*p[1]
-  
-#where I, J are integers
+
+#does this over an entire list of points
+def int_mapping_list(arr,n):
+  new = []
+  for i in arr:
+    new.append(integer_mapping(i,n))
+  return new
+
+#where I, J are arrays of integers. checks weak separability
 def is_sep(I,J):
   I_new = []
   J_new = []
@@ -13,34 +24,27 @@ def is_sep(I,J):
   for j in J:
     if j not in I:
       J_new.append(j)
-  if len(I_new) == 0 or len(J_new) == 0:
-    return True
-
-  p = I_new[0]
-  q = J_new[0]
-  m = abs(p-q)
-  for i in I_new:
-    for j in J_new:
-      if abs(i-j)<m:
-        p = i
-        q = j
-        m = abs(i - j)
-
-  if p<q:
-    for i in I_new:
-      if i>p:
-        return False
-    for j in J_new:
-      if j<q:
-        return False
-  elif p>q:
-    for i in I_new:
-      if i<p:
-        return False
-    for j in J_new:
-      if j>q:
-        return False
+  for i_1 in I_new:
+    for i_2 in I_new:
+      if i_1<i_2:
+        for j_1 in J_new:
+          if j_1<i_2 and j_1>i_1:
+            for j_2 in J_new:
+              if j_2>i_2:
+                return False
+          elif j_1<i_1:
+            for j_2 in J_new:
+              if j_2<i_2 and j_2>i_1:
+                return False
   return True
+
+def is_cone(p,n):
+  int_p = int_mapping_list(p,n)
+  int_p.sort()
+  #print(int_p)
+  if int_p[1]-int_p[0]==1 and int_p[2]-int_p[1]==1:
+    return True
+  return False
 
 def translate(I,n):
   I_new = []
@@ -48,23 +52,87 @@ def translate(I,n):
     I_new.append(i+n)
   return I_new
 
+def should_stop(I,J):
+  i_min = min(I)
+  i_max = max(I)
+  j_min = min(J)
+  j_max = max(J)
+  if i_min>j_max or j_min>i_max:
+    return True
+  return False
 
-def is_trans_sep_int(I,J,n,num):
-  for r in range(-num,num+1):
-    J_new = translate(J,r*n)
+def second_too_big(I,J):
+  if min(J)>max(I):
+    return True
+  return False
+
+def second_too_small(I,J):
+  if max(J)<min(I):
+    return True
+  return False
+
+#checks weak separability under 
+def is_trans_sep_int(I,J,n):
+  J_new = translate(J,0)
+  if second_too_big(I,J_new) is True:
+    while second_too_small(I,J_new) is False:
+      if is_sep(I,J_new) is False:
+        return False
+      J_new = translate(J_new,-n)
+  elif second_too_small(I,J_new) is True:
+    while second_too_big(I,J_new) is False:
+      if is_sep(I,J_new) is False:
+        return False
+      J_new = translate(J_new,n)
+  else:
+    while should_stop(I,J_new) is False:
+      if is_sep(I,J_new) == False:
+        return False
+      J_new = translate(J_new,n)
+    J_new = translate(J,0)
+    while should_stop(I,J_new) is False:
+      if is_sep(I,J_new) == False:
+        return False
+      J_new = translate(J_new,-n)
+  return True
+
+  
+"""
+def is_trans_sep_int(I,J,n):
+  J_new = translate(J,0)
+  while should_stop(I,J_new) is False:
+    if is_sep(I,J_new) == False:
+      return False
+    J_new = translate(J_new,n)
+  J_new = translate(J,0)
+  while should_stop(I,J_new) is False:
+    if is_sep(I,J_new) == False:
+      return False
+    J_new = translate(J_new,-n)
+  return True
+"""
+"""
+def is_trans_sep_int(I,J,n,num=150):
+  for k in range(-num,num+1):
+    J_new = translate(J,n*k)
     if is_sep(I,J_new) == False:
       return False
   return True
+"""
 
-def is_trans_sep(I,J,n,num):
+
+
+
+
+def is_trans_sep(I,J,n):
   I_new = []
   J_new = []
   for i in I:
     I_new.append(integer_mapping(i,n))
   for j in J:
     J_new.append(integer_mapping(j,n))
-  return is_trans_sep_int(I_new,J_new,n,num)
-    
+  #print(I_new,J_new)
+  return is_trans_sep_int(I_new,J_new,n)
 
 def gen_all(n):
   all = []
@@ -83,22 +151,63 @@ def gen_all(n):
       all.append(p)
       p = [[j,0],[j,1],[i,1]]
       all.append(p)
-      p = [[j,0],[j,1],[j,-1]]
+      p = [[j,0],[j,1],[i,2]]
       all.append(p)
+
   for k in range(n):
     for j in range(k):
       for i in range(j):
         p = [[i,0],[j,0],[k,0]]
-        all.append(p)
+        if is_cone(p,n) == False:
+          all.append(p)
         p = [[i,1],[j,1],[k,0]]
-        all.append(p)
+        if is_cone(p,n) == False:
+          all.append(p)
         p = [[i,1],[j,0],[k,0]]
-        all.append(p)
+        if is_cone(p,n) == False:
+          all.append(p)
   return all
 
-all = gen_all(3)
+
+def hash(p):
+  new = tuple()
+  for i in p:
+    new= new+((i[0],i[1]),)
+  return new
+
+
+
+all = gen_all(4)
+#print(len(all))
+
+#print(len(all))
+G = nx.Graph()
+for i in all:
+  #print(i)
+  G.add_node(hash(i))
+  #print(i)
+  #print(G)
+
+#print(len(G.nodes()))
+
+
 for i in all:
   for j in all:
-    if is_trans_sep(i,j,3,10) == True and i!=j:
-      print(i,j)
+    if is_trans_sep(i,j,4) == True and i!=j:
+      G.add_edge(hash(i),hash(j))
+
+s = max(len(c) for c in nx.find_cliques(G))
+
+cliques = list(nx.find_cliques(G))
+print(len(cliques))
+for c in cliques:
+  print(c)
+
+  
+
+num_maximal_cliques = len(cliques)
+print(num_maximal_cliques)
+print(G)
+
+print(is_trans_sep([[0,0],[0,1],[1,0]],[[1,0],[1,1],[1,2]],3))
   
